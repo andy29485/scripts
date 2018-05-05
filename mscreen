@@ -1,0 +1,22 @@
+#!/bin/bash
+
+if [ $# -lt 1 ] ; then
+  echo Error: you have to give write perms to at least one other user
+  echo
+  echo Usage:
+  echo $0 "<user1> [<user2> ...]"
+  echo
+  exit 1
+fi
+
+NAME=msession_$RANDOM
+screen -dU -m -S "$NAME"
+screen -S "$NAME" -X multiuser on
+
+while [ $# -gt 0 ] ; do
+  screen -S "$NAME" -X acladd "$1"
+  shift
+done
+
+screen -S "$NAME" -X stuff " clear ; printf '\n\nNOTE:\nSpecified users can attach with:\nscreen -xU $USER/$NAME\n\nAdd other users to session using:\nscreen -S $NAME -X acladd <username>\n\n'^M"
+screen -S "$NAME" -x
