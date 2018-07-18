@@ -10,7 +10,7 @@ help() {
   printf "$0 input.(mkv|mp4) output.gif [[-ss|--start] <start time>]"
   printf " [[-t|--duration] <duration>] [[-r|--rate] RATE] [-w WIDTH]"
   printf " [-c CROP] [-s|--enable-subtitles] [-i|--subtitle-file <sub file>]]"
-  printf " [-m|--manual]"
+  printf " [-m|--manual] [-g|--gif]"
   echo
   echo
   echo "Start:       start time of segment, format \"HH:MM:SS.mmm\""
@@ -22,6 +22,7 @@ help() {
   echo "Enable Subs: extract subs from video and burn into gif"
   echo "Sub File:    use subtitles from specified file instead"
   echo "Manual:      edit frames  manually before adding to gif"
+  echo "Gif:         force gif mode (instead of apng)"
 }
 
 if which convert 2>&1 > /dev/null ; then
@@ -31,7 +32,11 @@ elif which magick 2>&1 > /dev/null ; then
 else
   e "image magic"
 fi
+
 which ffmpeg 2>&1 > /dev/null || e "ffmpeg"
+
+# https://sourceforge.net/projects/apngasm/files/latest/download
+which apngasm 2>&1 > /dev/null || e "apngasm"
 
 if [[ $# -lt 2 ]] || [[ $# -gt 13 ]] ; then
   echo insufficent args
@@ -47,6 +52,16 @@ RATE=""
 SUBS=""
 MANUAL=""
 WIDTH="scale=520:-1:flags=lanczos"
+GIF=""
+DEBUG=""
+OPEN=""
+#DEBUG="yes"
+
+if which xdg-open 2>&1 ; then
+  OPEN="xdg-open"
+elif which xdg-open 2>&1 ; then
+  OPEN="start"
+fi
 
 while [[ $# -gt 0 ]] ; do
   key="$1"
@@ -103,6 +118,12 @@ while [[ $# -gt 0 ]] ; do
     -m|--manual)
       MANUAL="yes"
       ;;
+    -g|--gif)
+      GIF="yes"
+      ;;
+    -v|--verbose)
+      DEBUG="yes"
+      ;;
     *)
       if [[ -z "$INPUT" ]] ; then
         INPUT="$1"
@@ -145,34 +166,61 @@ fi
 
 if [ "$SUBS" = "INPUT" ] ; then
   echo extracting subs
-  #echo ffmpeg $START $DURATION -i "$INPUT" -map 0:s:0 "$tdir/subs.ass"
+  if [[ ! -z "$DEBUG" ]] ; then
+    echo ffmpeg $START $DURATION -i \"$INPUT\" -map 0:s:0 \"$tdir/subs.ass\"
+  fi
   ffmpeg $START $DURATION -i "$INPUT" -map 0:s:0 "$tdir/subs.ass" 2> /dev/null
   SUBS=",subtitles=$tdir/subs.ass"
   if [[ $INPUT == *.mkv ]] ; then
     mkdir "$tdir/attach"
     cd "$tdir/attach"
     echo extracting fonts
-    #echo ffmpeg -dump_attachment:t \"\" -i \"$INPUT\" -y
+    if [[ ! -z "$DEBUG" ]] ; then
+      echo ffmpeg -dump_attachment:t \"\" -i \"$INPUT\" -y
+    fi
     ffmpeg -dump_attachment:t "" -i "$INPUT" -y 2> /dev/null
   fi
 elif [[ ! -z "$SUBS" ]] ; then
-  #ffmpeg $START $DURATION -i "$SUBS" "$tdir/subs.ass" 2> /dev/null
+  if [[ ! -z "$DEBUG" ]] ; then
+    ffmpeg $START $DURATION -i "$SUBS" "$tdir/subs.ass" 2> /dev/null
+  fi
   cp "$SUBS" "$tdir/subs.ass"
   SUBS=",subtitles=$tdir/subs.ass"
 fi
 
 echo extracting frames
-#echo ffmpeg $START $DURATION -i "$INPUT" -vf $WIDTH,fps="$RATE$SUBS" "$tdir"/ffout%05d.png
+if [[ ! -z "$DEBUG" ]] ; then
+  echo ffmpeg $START $DURATION -i \"$INPUT\" -vf $WIDTH,fps=\"$RATE$SUBS\" \"$tdir\"/ffout%05d.png
+fi
 ffmpeg $START $DURATION -i "$INPUT" -vf $WIDTH,fps="$RATE$SUBS" "$tdir"/ffout%05d.png 2> /dev/null
 
 if [ -n "$MANUAL" ] ; then
-  echo please delete any unneeded images in "$tdir"
+  if [ -n "$OPEN" ] ; then
+    if [[ ! -z "$DEBUG" ]] ; then
+      echo $OPEN \"$tdir\"
+    fi
+    $OPEN "$tdir"
+  elif [[ ! -z "$DEBUG" ]] ; then
+    echo DEBUG: not opening dir, OPEN is not defined
+  fi
+  echo please delete any unneeded images in \"$tdir\"
   echo then press return to continue
   read tmp
 fi
 
 echo adding frames to gif
-#echo convert -loop 0 "$tdir"/ffout*.png "$OUTPUT"
-$convert -delay 0 -loop 0 -layers optimize "$tdir"/ffout*.png "$OUTPUT" 2>&1 1> /dev/null
+if [[ ! -z "$GIF" ]] ; then
+  OUTPUT="`basename "$OUTPUT" .gif | xargs basename .png`.gif"
+  if [[ ! -z "$DEBUG" ]] ; then
+    echo $convert -delay 0 -loop 0 -layers optimize \"$tdir\"/ffout*.png \"$OUTPUT\"
+  fi
+  $convert -delay 0 -loop 0 -layers optimize "$tdir"/ffout*.png "$OUTPUT" 2>&1 1> /dev/null
+else
+  OUTPUT="`basename "$OUTPUT" .gif | xargs basename .png`.png"
+  if [[ ! -z "$DEBUG" ]] ; then
+    echo apngasm \"$tdir\"/ffout*.png -o \"$OUTPUT\" -l 0
+  fi
+  apngasm "$tdir"/ffout*.png -o "$OUTPUT" -l 0
+fi
 
 echo done

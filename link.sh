@@ -34,3 +34,6 @@ while [[ $# -gt 0 ]] ; do
 
   shift
 done
+
+chown :sftp-access "$location" -R
+chmod g+wX "$location" -R
