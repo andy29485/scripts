@@ -67,7 +67,7 @@ INPUT=""
 OUTPUT=""
 START=""
 DURATION=""
-RATE=""
+RATE="25"
 SUBS=""
 MANUAL=""
 WIDTH="scale=520:-1:flags=lanczos"
@@ -187,7 +187,7 @@ if [[ ! -z "$DURATION" ]] ; then
 fi
 if [[ ! -z "$RATE" ]] ; then
   RATE="fps=$RATE"
-elif [[ ! -z "$GIF" ]] ; then
+else
   RATE="fps=13"
 fi
 
