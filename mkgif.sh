@@ -75,7 +75,7 @@ CROP=""
 GIF=""
 DEBUG=""
 OPEN=""
-#DEBUG="yes"
+DEBUG=""
 
 if which xdg-open > /dev/null 2>&1 ; then
   OPEN="xdg-open"
@@ -167,8 +167,8 @@ done
 tdir="/tmp/frames_$RANDOM"
 mkdir "$tdir"
 
-INPUT="`realpath "$INPUT"`"
-OUTPUT="`realpath "$OUTPUT"`"
+INPUT="`echo "$INPUT" | sed -E 's/([A-Z]):/\/\1/' | xargs -0 realpath`"
+OUTPUT="`echo "$OUTPUT" | sed -E 's/([A-Z]):/\/\1/' | xargs -0 realpath`"
 back="`pwd`"
 
 finish() {
@@ -192,7 +192,7 @@ if [ "$SUBS" = "INPUT" ] ; then
     echo ffmpeg $START $DURATION -i \"$INPUT\" -map 0:s:0 \"$tdir/subs.ass\"
   fi
   ffmpeg $START $DURATION -i "$INPUT" -map 0:s:0 "$tdir/subs.ass" 2> /dev/null
-  SUBS=",subtitles=$tdir/subs.ass"
+  SUBS=",subtitles=subs.ass"
   if [[ $INPUT == *.mkv ]] ; then
     mkdir "$tdir/attach"
     cd "$tdir/attach"
@@ -239,7 +239,7 @@ if [ "`echo "$tdir"/ffout*.png`" == "$tdir/ffout*.png" ] ; then
   e "Nothing Frames Found"
 fi
 
-echo adding frames to gif
+echo adding frames to image
 if [[ ! -z "$GIF" ]] ; then
   OUTPUT="`dirname "$OUTPUT"`/`basename "$OUTPUT" .gif | xargs -I name basename name .png`.gif"
   if [[ ! -z "$DEBUG" ]] ; then
@@ -253,7 +253,7 @@ if [[ ! -z "$GIF" ]] ; then
 else
   OUTPUT="`dirname "$OUTPUT"`/`basename "$OUTPUT" .gif | xargs -I name basename name .png`.png"
   if [[ ! -z "$DEBUG" ]] ; then
-    echo apngasm \"$tdir\"/ffout*.png -o "$tdir/out.png" -l 0
+    echo apngasm "\"$tdir\"/ffout*.png" -o "$tdir/out.png" -l 0
   fi
   apngasm "$tdir"/ffout*.png -o "$tdir/out.png" -l 0 > /dev/null 2>&1
   if [[ ! -z "$DEBUG" ]] ; then
