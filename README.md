@@ -22,12 +22,26 @@ starts a multi-user screen session
 ### mkgif.sh
 creates an apng file (or a gif) from a video
 (using time codes, and maybe crop parameters)
+- Requires (needs to be in `$PATH`):
+  - `apngasm` (apng tools)
+  - `ffmpeg`
+  - `convert` or `magick` (image magic)
 
 ### mpv-mkgif.lua
 lua script for mpv.
+- Requires (needs to be in `$PATH`):
+  - `mkgif.sh` (that thing up above this one)
 - copy to:
   - `%APPDATA%/mpv/scripts/` (windows)
   - `~/.config/mpv/scripts/` (GNU/Linux)
+- Usage:
+|     Shortcut    |         Action         |
+| --------------- | ---------------------- |
+|  `Shift+C`      | set crop               |
+|  `g`            | set start time         |
+|  `Shift+G`      | set end time           |
+|  `Ctrl+Shift+g` | make gif, with subs    |
+|  `Ctrl+Shift+G` | make gif, without subs |
 
 ### music-tag.py
 tag an album (looks up stuff in vgmdb)
