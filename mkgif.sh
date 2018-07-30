@@ -54,7 +54,7 @@ fi
 
 which ffmpeg > /dev/null 2>&1 || e "ffmpeg"
 
-# https://sourceforge.net/projects/apngasm/files/latest/download
+# https://github.com/apngasm/apngasm/releases/download/3.1.3/apngasm_3.1-3_AMD64.exe
 which apngasm > /dev/null 2>&1 || e "apngasm"
 
 if [[ $# -lt 2 ]] || [[ $# -gt 13 ]] ; then
