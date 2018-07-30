@@ -44,18 +44,9 @@ dialog-box() {
   fi
 }
 
-if which magick > /dev/null 2>&1 ; then
-  convert=magick
-elif which convert > /dev/null 2>&1 ; then
-  convert=convert
-else
-  e "image magic"
-fi
-
 which ffmpeg > /dev/null 2>&1 || e "ffmpeg"
 
 # https://github.com/apngasm/apngasm/releases/download/3.1.3/apngasm_3.1-3_AMD64.exe
-which apngasm > /dev/null 2>&1 || e "apngasm"
 
 if [[ $# -lt 2 ]] || [[ $# -gt 13 ]] ; then
   echo insufficent args
@@ -163,6 +154,18 @@ while [[ $# -gt 0 ]] ; do
   esac
   shift # past argument or value
 done
+
+if [[ ! -z "$GIF" ]] ; then
+  if which magick > /dev/null 2>&1 ; then
+    convert=magick
+  elif which convert > /dev/null 2>&1 ; then
+    convert=convert
+  else
+    e "image magic"
+  fi
+else
+  which apngasm > /dev/null 2>&1 || e "apngasm"
+fi
 
 tdir="/tmp/frames_$RANDOM"
 mkdir "$tdir"
