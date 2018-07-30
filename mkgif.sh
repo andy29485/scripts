@@ -10,7 +10,7 @@ help() {
   printf "$0 input.(mkv|mp4) output.gif [[-ss|--start] <start time>]"
   printf " [[-t|--duration] <duration>] [[-r|--rate] RATE] [-w WIDTH]"
   printf " [-c CROP] [-s|--enable-subtitles] [-i|--subtitle-file <sub file>]]"
-  printf " [-m|--manual] [-M|--manual-no-wait] [-g|--gif]"
+  printf " [-m|--manual] [-M|--manual-gui] [-g|--gif]"
   echo
   echo
   echo "Start:       start time of segment, format \"HH:MM:SS.mmm\""
@@ -25,18 +25,37 @@ help() {
   echo "Gif:         force gif mode (instead of apng)"
 }
 
-if which convert 2>&1 > /dev/null ; then
-  convert=convert
-elif which magick 2>&1 > /dev/null ; then
+dialog-box() {
+  if which zenity > /dev/null 2>&1 ; then
+    zenity \
+      --info \
+      --text="$2" \
+      --title="$1"
+  elif which kdialog > /dev/null 2>&1 ; then
+    kdialog --title "$1" --msgbox "$2"
+  elif which gxmessage  > /dev/null 2>&1 ; then
+    gxmessage "$2"
+  elif which xmessage > /dev/null 2>&1 ; then
+    xmessage -buttons Ok:0,"Not sure":1,Cancel:2 -default Ok -nearmouse "$2"
+  elif which mshta > /dev/null 2>&1 ; then
+    mshta "javascript:alert('$2');close();"
+  else
+    echo "sorry, can't do much to pause"
+  fi
+}
+
+if which magick > /dev/null 2>&1 ; then
   convert=magick
+elif which convert > /dev/null 2>&1 ; then
+  convert=convert
 else
   e "image magic"
 fi
 
-which ffmpeg 2>&1 > /dev/null || e "ffmpeg"
+which ffmpeg > /dev/null 2>&1 || e "ffmpeg"
 
 # https://sourceforge.net/projects/apngasm/files/latest/download
-which apngasm 2>&1 > /dev/null || e "apngasm"
+which apngasm > /dev/null 2>&1 || e "apngasm"
 
 if [[ $# -lt 2 ]] || [[ $# -gt 13 ]] ; then
   echo insufficent args
@@ -58,10 +77,10 @@ DEBUG=""
 OPEN=""
 #DEBUG="yes"
 
-if which xdg-open 2>&1 > /dev/null ; then
+if which xdg-open > /dev/null 2>&1 ; then
   OPEN="xdg-open"
-elif which xdg-open 2>&1 > /dev/null ; then
-  OPEN="start"
+elif which start > /dev/null 2>&1 ; then
+  OPEN="start" # prob windows
 fi
 
 while [[ $# -gt 0 ]] ; do
@@ -119,7 +138,7 @@ while [[ $# -gt 0 ]] ; do
     -m|--manual)
       MANUAL="yes"
       ;;
-    -M|--manual-no-wait)
+    -M|--manual-gui)
       MANUAL="YES"
       ;;
     -g|--gif)
@@ -158,6 +177,8 @@ finish() {
 }
 trap finish EXIT
 
+cd "$tdir"
+
 if [[ ! -z "$START" ]] ; then
   START="-ss $START"
 fi
@@ -180,6 +201,7 @@ if [ "$SUBS" = "INPUT" ] ; then
       echo ffmpeg -dump_attachment:t \"\" -i \"$INPUT\" -y
     fi
     ffmpeg -dump_attachment:t "" -i "$INPUT" -y 2> /dev/null
+    cd ../
   fi
 elif [[ ! -z "$SUBS" ]] ; then
   if [[ ! -z "$DEBUG" ]] ; then
@@ -199,15 +221,17 @@ if [ -n "$MANUAL" ] ; then
   echo please delete any unneeded images in \"$tdir\"
   if [ -n "$OPEN" ] ; then
     if [[ ! -z "$DEBUG" ]] ; then
-      echo $OPEN \"$tdir\"
+      echo $OPEN \"$tdir\" \&
     fi
-    $OPEN "$tdir"
+    $OPEN "$tdir" &
   elif [[ ! -z "$DEBUG" ]] ; then
     echo "DEBUG: not opening dir, OPEN is not defined"
   fi
   if [ "$MANUAL" == "yes" ] ; then # not uppercase
     echo then press return to continue
     read tmp
+  elif [ "$MANUAL" == "YES" ] ; then
+    dialog-box "APNG/GIF maker thing" "Close this to continue"
   fi
 fi
 
@@ -219,9 +243,9 @@ echo adding frames to gif
 if [[ ! -z "$GIF" ]] ; then
   OUTPUT="`dirname "$OUTPUT"`/`basename "$OUTPUT" .gif | xargs -I name basename name .png`.gif"
   if [[ ! -z "$DEBUG" ]] ; then
-    echo $convert -delay 0 -loop 0 -layers optimize \"$tdir\"/ffout*.png \"$tdir/out.gif\"
+    echo $convert -delay 0 -loop 0 \"$tdir\"/ffout*.png \"$tdir/out.gif\"
   fi
-  $convert -delay 0 -loop 0 -layers optimize "$tdir"/ffout*.png "$tdir/out.gif" 2>&1 1> /dev/null
+  $convert -delay 0 -loop 0 "$tdir"/ffout*.png "$tdir/out.gif" > /dev/null 2>&1
   if [[ ! -z "$DEBUG" ]] ; then
     echo mv \"$tdir/out.gif\" "$OUTPUT"
   fi
@@ -231,7 +255,7 @@ else
   if [[ ! -z "$DEBUG" ]] ; then
     echo apngasm \"$tdir\"/ffout*.png -o "$tdir/out.png" -l 0
   fi
-  apngasm "$tdir"/ffout*.png -o "$tdir/out.png" -l 0 2>&1 1> /dev/null
+  apngasm "$tdir"/ffout*.png -o "$tdir/out.png" -l 0 > /dev/null 2>&1
   if [[ ! -z "$DEBUG" ]] ; then
     echo mv \"$tdir/out.png\" "$OUTPUT"
   fi
