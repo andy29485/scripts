@@ -248,7 +248,7 @@ echo adding frames to image
 if [[ ! -z "$GIF" ]] ; then
   OUTPUT="`dirname "$OUTPUT"`/`basename "$OUTPUT" .gif | xargs -I name basename name .png`.gif"
   if [[ ! -z "$DEBUG" ]] ; then
-    echo $convert -delay 0 -loop 0 \"$tdir\"/ffout*.png \"$tdir/out.gif\"
+    echo $convert -delay 0 -loop 0 "\"$tdir\"/ffout*.png" \"$tdir/out.gif\"
   fi
   $convert -delay 0 -loop 0 "$tdir"/ffout*.png "$tdir/out.gif" > /dev/null 2>&1
   if [[ ! -z "$DEBUG" ]] ; then
@@ -258,9 +258,9 @@ if [[ ! -z "$GIF" ]] ; then
 else
   OUTPUT="`dirname "$OUTPUT"`/`basename "$OUTPUT" .gif | xargs -I name basename name .png`.png"
   if [[ ! -z "$DEBUG" ]] ; then
-    echo apngasm "\"$tdir\"/ffout*.png" -o "$tdir/out.png" -l 0
+    echo apngasm "\"$tdir\"/ffout*.png" -o \"$tdir/out.png\" -d $((1000/${RATE/fps=/})) -l 0
   fi
-  apngasm "$tdir"/ffout*.png -o "$tdir/out.png" -l 0 > /dev/null 2>&1
+  apngasm "$tdir"/ffout*.png -o "$tdir/out.png" -d $((1000/${RATE/fps=/})) -l 0 > /dev/null 2>&1
   if [[ ! -z "$DEBUG" ]] ; then
     echo mv \"$tdir/out.png\" "$OUTPUT"
   fi
