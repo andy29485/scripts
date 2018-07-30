@@ -67,7 +67,7 @@ INPUT=""
 OUTPUT=""
 START=""
 DURATION=""
-RATE="24"
+RATE=""
 SUBS=""
 MANUAL=""
 WIDTH="scale=520:-1:flags=lanczos"
@@ -185,6 +185,11 @@ fi
 if [[ ! -z "$DURATION" ]] ; then
   DURATION="-t $DURATION"
 fi
+if [[ ! -z "$RATE" ]] ; then
+  RATE="fps=$RATE"
+elif [[ ! -z "$GIF" ]] ; then
+  RATE="fps=13"
+fi
 
 if [ "$SUBS" = "INPUT" ] ; then
   echo extracting subs
@@ -213,9 +218,9 @@ fi
 
 echo extracting frames
 if [[ ! -z "$DEBUG" ]] ; then
-  echo ffmpeg $START $DURATION -i \"$INPUT\" -vf $CROP$WIDTH,fps=\"$RATE$SUBS\" \"$tdir\"/ffout%05d.png
+  echo ffmpeg $START $DURATION -i \"$INPUT\" -vf $CROP$WIDTH,\"$RATE$SUBS\" \"$tdir\"/ffout%05d.png
 fi
-ffmpeg $START $DURATION -i "$INPUT" -vf $CROP$WIDTH,fps="$RATE$SUBS" "$tdir"/ffout%05d.png 2> /dev/null
+ffmpeg $START $DURATION -i "$INPUT" -vf $CROP$WIDTH,"$RATE$SUBS" "$tdir"/ffout%05d.png 2> /dev/null
 
 if [ -n "$MANUAL" ] ; then
   echo please delete any unneeded images in \"$tdir\"
