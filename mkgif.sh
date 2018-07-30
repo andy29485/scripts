@@ -10,7 +10,7 @@ help() {
   printf "$0 input.(mkv|mp4) output.gif [[-ss|--start] <start time>]"
   printf " [[-t|--duration] <duration>] [[-r|--rate] RATE] [-w WIDTH]"
   printf " [-c CROP] [-s|--enable-subtitles] [-i|--subtitle-file <sub file>]]"
-  printf " [-m|--manual] [-g|--gif]"
+  printf " [-m|--manual] [-M|--manual-no-wait] [-g|--gif]"
   echo
   echo
   echo "Start:       start time of segment, format \"HH:MM:SS.mmm\""
@@ -48,18 +48,19 @@ INPUT=""
 OUTPUT=""
 START=""
 DURATION=""
-RATE=""
+RATE="24"
 SUBS=""
 MANUAL=""
 WIDTH="scale=520:-1:flags=lanczos"
+CROP=""
 GIF=""
 DEBUG=""
 OPEN=""
 #DEBUG="yes"
 
-if which xdg-open 2>&1 ; then
+if which xdg-open 2>&1 > /dev/null ; then
   OPEN="xdg-open"
-elif which xdg-open 2>&1 ; then
+elif which xdg-open 2>&1 > /dev/null ; then
   OPEN="start"
 fi
 
@@ -112,11 +113,14 @@ while [[ $# -gt 0 ]] ; do
       fi
       ;;
     -c|--crop)
-      WIDTH="crop=$2"
+      CROP="crop=$2,"
       shift
       ;;
     -m|--manual)
       MANUAL="yes"
+      ;;
+    -M|--manual-no-wait)
+      MANUAL="YES"
       ;;
     -g|--gif)
       GIF="yes"
@@ -160,9 +164,6 @@ fi
 if [[ ! -z "$DURATION" ]] ; then
   DURATION="-t $DURATION"
 fi
-if [[ -z "$RATE" ]] ; then
-  RATE="13"
-fi
 
 if [ "$SUBS" = "INPUT" ] ; then
   echo extracting subs
@@ -190,37 +191,51 @@ fi
 
 echo extracting frames
 if [[ ! -z "$DEBUG" ]] ; then
-  echo ffmpeg $START $DURATION -i \"$INPUT\" -vf $WIDTH,fps=\"$RATE$SUBS\" \"$tdir\"/ffout%05d.png
+  echo ffmpeg $START $DURATION -i \"$INPUT\" -vf $CROP$WIDTH,fps=\"$RATE$SUBS\" \"$tdir\"/ffout%05d.png
 fi
-ffmpeg $START $DURATION -i "$INPUT" -vf $WIDTH,fps="$RATE$SUBS" "$tdir"/ffout%05d.png 2> /dev/null
+ffmpeg $START $DURATION -i "$INPUT" -vf $CROP$WIDTH,fps="$RATE$SUBS" "$tdir"/ffout%05d.png 2> /dev/null
 
 if [ -n "$MANUAL" ] ; then
+  echo please delete any unneeded images in \"$tdir\"
   if [ -n "$OPEN" ] ; then
     if [[ ! -z "$DEBUG" ]] ; then
       echo $OPEN \"$tdir\"
     fi
     $OPEN "$tdir"
   elif [[ ! -z "$DEBUG" ]] ; then
-    echo DEBUG: not opening dir, OPEN is not defined
+    echo "DEBUG: not opening dir, OPEN is not defined"
   fi
-  echo please delete any unneeded images in \"$tdir\"
-  echo then press return to continue
-  read tmp
+  if [ "$MANUAL" == "yes" ] ; then # not uppercase
+    echo then press return to continue
+    read tmp
+  fi
+fi
+
+if [ "`echo "$tdir"/ffout*.png`" == "$tdir/ffout*.png" ] ; then
+  e "Nothing Frames Found"
 fi
 
 echo adding frames to gif
 if [[ ! -z "$GIF" ]] ; then
-  OUTPUT="`basename "$OUTPUT" .gif | xargs basename .png`.gif"
+  OUTPUT="`dirname "$OUTPUT"`/`basename "$OUTPUT" .gif | xargs -I name basename name .png`.gif"
   if [[ ! -z "$DEBUG" ]] ; then
-    echo $convert -delay 0 -loop 0 -layers optimize \"$tdir\"/ffout*.png \"$OUTPUT\"
+    echo $convert -delay 0 -loop 0 -layers optimize \"$tdir\"/ffout*.png \"$tdir/out.gif\"
   fi
-  $convert -delay 0 -loop 0 -layers optimize "$tdir"/ffout*.png "$OUTPUT" 2>&1 1> /dev/null
+  $convert -delay 0 -loop 0 -layers optimize "$tdir"/ffout*.png "$tdir/out.gif" 2>&1 1> /dev/null
+  if [[ ! -z "$DEBUG" ]] ; then
+    echo mv \"$tdir/out.gif\" "$OUTPUT"
+  fi
+  mv "$tdir/out.gif" "$OUTPUT"
 else
-  OUTPUT="`basename "$OUTPUT" .gif | xargs basename .png`.png"
+  OUTPUT="`dirname "$OUTPUT"`/`basename "$OUTPUT" .gif | xargs -I name basename name .png`.png"
   if [[ ! -z "$DEBUG" ]] ; then
-    echo apngasm \"$tdir\"/ffout*.png -o \"$OUTPUT\" -l 0
+    echo apngasm \"$tdir\"/ffout*.png -o "$tdir/out.png" -l 0
   fi
-  apngasm "$tdir"/ffout*.png -o "$OUTPUT" -l 0
+  apngasm "$tdir"/ffout*.png -o "$tdir/out.png" -l 0 2>&1 1> /dev/null
+  if [[ ! -z "$DEBUG" ]] ; then
+    echo mv \"$tdir/out.png\" "$OUTPUT"
+  fi
+  mv "$tdir/out.png" "$OUTPUT"
 fi
 
 echo done
