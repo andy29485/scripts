@@ -193,6 +193,11 @@ if [[ ! -z "$RATE" ]] ; then
 else
   RATE="fps=13"
 fi
+if [[ $WIDTH ~= scale=([0-9]+): ]] ; then
+  if [[ ${BASH_REMATCH[1]} -gt ${CROP/:*/} ]] ; then
+    WIDTH="scale=${CROP/:*/}:-1:flags=lanczos"
+  fi
+fi
 
 if [ "$SUBS" = "INPUT" ] ; then
   echo extracting subs
