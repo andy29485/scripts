@@ -193,10 +193,14 @@ if [[ ! -z "$RATE" ]] ; then
 else
   RATE="fps=13"
 fi
-PAT="scale=([0-9]+):"
-if [[ $WIDTH =~ $PAT ]] && [[ -n ${CROP/:*/} ]]; then
-  if [[ ${BASH_REMATCH[1]} -gt ${CROP/:*/} ]] ; then
-    WIDTH="scale=${CROP/:*/}:-1:flags=lanczos"
+PAT="=([0-9]+):"
+if [[ $WIDTH =~ $PAT ]] ; then
+  scale_tmp=${BASH_REMATCH[1]}
+  if [[ $CROP =~ $PAT ]] ; then
+    crop_tmp=${BASH_REMATCH[1]}
+    if [[ scale_tmp -gt crop_tmp ]] ; then
+      WIDTH="scale=$crop_tmp:-1:flags=lanczos"
+    fi
   fi
 fi
 
