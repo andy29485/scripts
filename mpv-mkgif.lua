@@ -1316,7 +1316,7 @@ function make(burn_subtitles)
   end
 
   args = string.format(
-    'mkgif.sh %s %s %s %s %s%s-M',
+    'mkgif.sh \"%s\" \"%s\" %s %s %s%s-M',
     esc(pathname), esc(imgname),
     start_time, duration,
     crop_str,
