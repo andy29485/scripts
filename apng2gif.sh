@@ -46,7 +46,7 @@ trap finish EXIT
 
 # extract frames
 echo extracting frames
-echo apngasm -D \"$1\" -o \"$tdir\" -x \"$tdir/out.xml\"
+#echo apngasm -D \"$1\" -o \"$tdir\" -x \"$tdir/out.xml\"
 apngasm -D "$1" -o "$tdir" -x "$tdir/out.xml" > /dev/null 2>&1
 
 # Get num loops and the delay
@@ -55,9 +55,9 @@ DELAY=`cat "$tdir/out.xml" | grep -Po "(?<=delay=\")\\d+/\\d+(?=\")" | head -1 `
 
 # compute the output name of the gif
 if [[ -z "$2" ]]; then
-  OUT="`dirname "$1"`/`basename "$1 .png".gif`"
+  OUT="`dirname "$1"`/`basename "$1" .png`.gif"
 elif [ -d "$2" ]; then
-  OUT="$2/`basename "$1 .png".gif`"
+  OUT="$2/`basename "$1" .png`.gif"
 else
   OUT="$2"
 fi
@@ -66,11 +66,11 @@ OUT="`realpath "$OUT"`"
 # create the gif
 cd "$tdir"
 echo creating gif
-echo \"$convert\" -delay \"$DELAY\" -loop 0 \`ls "$tdir"/\*png \| sort -n \` \"$tdir/out.gif\"
+#echo \"$convert\" -delay \"$DELAY\" -loop 0 \`ls "$tdir"/\*png \| sort -n \` \"$tdir/out.gif\"
 "$convert" -delay "$DELAY" -loop 0 `ls "$tdir"/*png | sort -n ` "$tdir/out.gif" > /dev/null 2>&1
 
 # move the gif to the final output location
-echo mv "$tdir/out.gif" "$OUT"
+#echo mv "$tdir/out.gif" "$OUT"
 mv "$tdir/out.gif" "$OUT"
 echo done
 
