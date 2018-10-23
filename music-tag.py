@@ -647,6 +647,7 @@ def process_song(filename, cover_data=None, album={}, info={}, discpath=None):
   name_lat = info.get('name_lat', name_lat).strip()
   artists  = '; '.join(album.get('artists') or f.get('artist', []))
   genres   = '; '.join(album.get('genres')  or f.get('genre',  []))
+  comment  = ''
 
   if type(f) == EasyID3:
     id3 = f._EasyID3__id3

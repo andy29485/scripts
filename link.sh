@@ -35,5 +35,5 @@ while [[ $# -gt 0 ]] ; do
   shift
 done
 
-chown :sftp-access "$location" -R
-chmod g+wX "$location" -R
+chown :sftp-access "$location" -R  2> /dev/null
+chmod g+wX "$location" -R 2> /dev/null
