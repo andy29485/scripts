@@ -1236,7 +1236,7 @@ function crop_toggle()
   else
     local on_crop = function(crop)
       mp.set_osd_ass(0, 0, "")
-      crop_str = string.format("-c %d:%d:%d:%d ", crop.w,crop.h,crop.x,crop.y)
+      crop_str = string.format("c %d:%d:%d:%d", crop.w,crop.h,crop.x,crop.y)
     end
     local on_cancel = function()
       crop_str = ""
@@ -1303,8 +1303,8 @@ function make(burn_subtitles)
   local file_path = working_path .. filename
 
     -- find a filename that works
-  for i=0,9999 do
-    local fn = string.format('%s_%03d.png', file_path, i)
+  for i=0,99999 do
+    local fn = string.format('%s_%03d', file_path, i)
     if not file_exists(fn) then
       imgname = fn
       break
@@ -1316,11 +1316,11 @@ function make(burn_subtitles)
   end
 
   args = string.format(
-    'mkgif.sh \"%s\" \"%s\" %s %s %s%s-M',
-    esc(pathname), esc(imgname),
-    start_time, duration,
+    'mkgif.sh -M%s%s \"%s\" \"%s\" %s %s',
+    (burn_subtitles and 's ' or ''),
     crop_str,
-    (burn_subtitles and '-s ' or '')
+    esc(pathname), esc(imgname),
+    start_time, duration
   )
   os.execute(args)
 
@@ -1339,13 +1339,15 @@ function set_end()
 end
 
 function file_exists(name)
-  local f=io.open(name,"r")
-  if f~=nil then
-    io.close(f)
-    return true
-  else
-    return false
+  local exts = {'.png', '.gif', '.webm'}
+  for _,ext in ipairs(exts) do
+    local f = io.open(name..ext,"r")
+    if f~=nil then
+      io.close(f)
+      return true
+    end
   end
+  return false
 end
 
 function get_containing_path(str,sep)

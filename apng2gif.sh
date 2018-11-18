@@ -42,7 +42,7 @@ finish() {
   rm -rf "$tdir"
   cd "$back"
 }
-trap finish EXIT
+#trap finish EXIT
 
 # extract frames
 echo extracting frames
@@ -66,7 +66,7 @@ OUT="`realpath "$OUT"`"
 # create the gif
 cd "$tdir"
 echo creating gif
-#echo \"$convert\" -delay \"$DELAY\" -loop 0 \`ls "$tdir"/\*png \| sort -n \` \"$tdir/out.gif\"
+echo \"$convert\" -delay \"$DELAY\" -loop 0 \`ls "$tdir"/\*png \| sort -n \` \"$tdir/out.gif\"
 "$convert" -delay "$DELAY" -loop 0 `ls "$tdir"/*png | sort -n ` "$tdir/out.gif" > /dev/null 2>&1
 
 # move the gif to the final output location
