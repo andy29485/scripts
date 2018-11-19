@@ -77,7 +77,7 @@ get_subs() {
     echo extracting subs
     run ffmpeg $START $DURATION -i "$INPUT" -map 0:s:0 "$tdir/subs.ass"
     SUBS=",subtitles=subs.ass:fontsdir='$tdir/attach'"
-    if [[ $INPUT == *.mkv ]] && [[] ! -d "$tdir/attach" ]] ; then
+    if [[ $INPUT == *.mkv ]] && [[ ! -d "$tdir/attach" ]] ; then
       echo extracting fonts
       mkdir "$tdir/attach"
       cd "$tdir/attach"
