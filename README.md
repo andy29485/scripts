@@ -35,13 +35,15 @@ lua script for mpv.
   - `%APPDATA%/mpv/scripts/` (windows)
   - `~/.config/mpv/scripts/` (GNU/Linux)
 - Usage:
-|     Shortcut    |         Action         |
-| --------------- | ---------------------- |
-|  `Shift+C`      | set crop               |
-|  `g`            | set start time         |
-|  `Shift+G`      | set end time           |
-|  `Ctrl+Shift+g` | make gif, with subs    |
-|  `Ctrl+Shift+G` | make gif, without subs |
+|     Shortcut    |          Action         |
+| --------------- | ----------------------- |
+|  `Shift+C`      | set crop                |
+|  `g`            | set start time          |
+|  `Shift+G`      | set end time            |
+|  `Ctrl+g`       | make gif, with subs     |
+|  `Ctrl+Shift+G` | make gif, without subs  |
+|  `Ctrl+w`       | make webm, with subs    |
+|  `Ctrl+Shift+W` | make webm, without subs |
 
 ### music-tag.py
 tag an album (looks up stuff in vgmdb)

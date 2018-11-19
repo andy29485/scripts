@@ -1272,14 +1272,22 @@ function on_tick_listener()
 end
 
 function make_with_subtitles()
-  make(true)
+  make(true, true)
 end
 
 function make_plain()
-  make(false)
+  make(false, true)
 end
 
-function make(burn_subtitles)
+function make_with_subtitles_webm()
+  make(true, false)
+end
+
+function make_plain_webm()
+  make(false, false)
+end
+
+function make(burn_subtitles, as_webm)
   local end_time_l = end_time
   local duration = end_time - start_time
 
@@ -1316,8 +1324,9 @@ function make(burn_subtitles)
   end
 
   args = string.format(
-    'mkgif.sh -M%s%s \"%s\" \"%s\" %s %s',
-    (burn_subtitles and 's ' or ''),
+    'mkgif.sh -M%s%s%s \"%s\" \"%s\" %s %s',
+    (burn_subtitles and 's' or ''),
+    (as_webm and 'W' or 'GP'),
     crop_str,
     esc(pathname), esc(imgname),
     start_time, duration
@@ -1367,4 +1376,6 @@ mp.add_key_binding("g", "set_start", set_start)
 mp.add_key_binding("G", "set_end", set_end)
 mp.add_key_binding("Ctrl+g", "make_with_subtitles", make_with_subtitles)
 mp.add_key_binding("Ctrl+G", "make_plain", make_plain)
+mp.add_key_binding("Ctrl+w", "make_with_subtitles", make_with_subtitles_webm)
+mp.add_key_binding("Ctrl+W", "make_plain", make_plain_webm)
 mp.add_key_binding("C", "crop_toggle", crop_toggle)

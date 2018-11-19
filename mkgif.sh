@@ -307,13 +307,17 @@ mkdir "$tdir/out"
 BASE="$tdir/out/`basename "$OUTPUT"`"
 ODIR="`dirname "$OUTPUT"`"
 
-if [[ ! -z "$GIF" ]] ; then
-  echo adding frames to gif
-  run $convert -delay $DELAY/0 -loop 0 "$tdir"/ffout*.png "$BASE".gif
-fi
 if [[ ! -z "$APNG" ]] ; then
   echo adding frames to apng
   run apngasm "$tdir"/ffout*.png -o "$BASE".png -d $DELAY -l 0
+fi
+if [[ ! -z "$GIF" ]] ; then
+  echo adding frames to gif
+  if [[ ! -z "$APNG" ]] &&  which apng2gif > /dev/null 2>&1 ; then
+    run apng2gif "$BASE".png "$BASE".gif
+  else
+    run $convert -delay $DELAY/0 -loop 0 "$tdir"/ffout*.png "$BASE".gif
+  fi
 fi
 if [[ ! -z "$WEBM" ]] ; then
   echo creating webm
