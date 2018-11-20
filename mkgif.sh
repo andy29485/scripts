@@ -66,30 +66,28 @@ dialog-box() {
 
 run() {
   if [[ ! -z "$DEBUG" ]] ; then
-    printf "%q " "$@"
-    echo
+    printf "%q " "$@" >&2
+    echo >&2
   fi
   "$@" > /dev/null 2>&1
 }
 
 get_subs() {
-  if [ "$SUBS" = "INPUT" ] ; then
-    echo extracting subs
+  if [ "$1" = "INPUT" ] ; then
+    echo extracting subs >&2
     run ffmpeg $START $DURATION -i "$INPUT" -map 0:s:0 "$tdir/subs.ass" -y
-    SUBS=",subtitles=subs.ass:fontsdir='$tdir/attach'"
+    echo ",subtitles=subs.ass:fontsdir=attach"
     if [[ $INPUT == *.mkv ]] && [[ ! -d "$tdir/attach" ]] ; then
-      echo extracting fonts
+      echo extracting fonts >&2
       mkdir "$tdir/attach"
       cd "$tdir/attach"
 
       run ffmpeg -dump_attachment:t "" -i "$INPUT" -y
-
-      cd ../
     fi
-  elif [[ ! -z "$SUBS" ]] ; then
-    run ffmpeg $START $DURATION -i "$SUBS" "$tdir/subs.ass" -y
-    cp "$SUBS" "$tdir/subs.ass"
-    SUBS=",subtitles=$tdir/subs.ass"
+  elif [[ ! -z "$1" ]] ; then
+    run ffmpeg $START $DURATION -i "$1" "$tdir/subs.ass" -y
+    cp "$1" "$tdir/subs.ass"
+    echo ",subtitles=$tdir/subs.ass"
   fi
 }
 
@@ -109,7 +107,7 @@ GIF=""
 APNG=""
 WEBM=""
 OPEN=""
-#DEBUG="true"
+DEBUG="true"
 
 if which xdg-open > /dev/null 2>&1 ; then
   OPEN="xdg-open"
@@ -160,18 +158,18 @@ do
 done
 while getopts "$optspec" optchar; do
   case "${optchar}" in
-    h) help ; exit 2                     ;;
-    v) DEBUG="true"                      ;;
-    r) RATE="$OPTARG"                    ;;
-    w) WIDTH="$OPTARG"                   ;;
-    i) SUBS="$OPTARG"                    ;;
-    s) [[ -z "$SUBS" ]] && SUBS="INPUT"  ;;
-    c) CROP="$OPTARG"                    ;;
-    m) MANUAL="cli"                      ;;
-    M) MANUAL="gui"                      ;;
-    G) GIF="true"                        ;;
-    P) APNG="true"                       ;;
-    W) WEBM="true"                       ;;
+    h) help ; exit 2                      ;;
+    v) DEBUG="true"                       ;;
+    r) RATE="$OPTARG"                     ;;
+    w) WIDTH="$OPTARG"                    ;;
+    i) OSUBS="$OPTARG"                    ;;
+    s) [[ -z "$OSUBS" ]] && OSUBS="INPUT" ;;
+    c) CROP="$OPTARG"                     ;;
+    m) MANUAL="cli"                       ;;
+    M) MANUAL="gui"                       ;;
+    G) GIF="true"                         ;;
+    P) APNG="true"                        ;;
+    W) WEBM="true"                        ;;
   esac
 done
 shift $((OPTIND-1))
@@ -258,27 +256,26 @@ if [ -z "$GIF$APNG$WEBM" ] ; then
       ;;
   esac
   if [[ ! -z "$DEBUG" ]] ; then
-    echo gif=$GIF \| apng=$APNG \| webm=$WEBM
+    echo gif=$GIF \| apng=$APNG \| webm=$WEBM >&2
   fi
 fi
 OUTPUT="${OUTPUT%.*}"
 
-OSUBS="$SUBS"
-get_subs
+SUBS="`get_subs "$OSUBS"`"
 
-echo extracting frames
+echo extracting frames >&2
 run ffmpeg $START $DURATION -i "$INPUT" \
            -vf $CROP$WIDTH"$RATE$SUBS" "$tdir"/ffout%05d.png
 
 if [ -n "$MANUAL" ] ; then
-  echo please delete any unneeded images in \"$tdir\"
+  echo please delete any unneeded images in \"$tdir\" >&2
   if [ -n "$OPEN" ] ; then
     run $OPEN "$tdir" &
   elif [[ ! -z "$DEBUG" ]] ; then
-    echo "DEBUG: not opening dir, OPEN is not defined"
+    echo "DEBUG: not opening dir, OPEN is not defined" >&2
   fi
   if [ "$MANUAL" == "cli" ] ; then # not uppercase
-    echo then press return to continue
+    echo then press return to continue >&2
     read tmp
   elif [ "$MANUAL" == "gui" ] ; then
     dialog-box "APNG/GIF maker thing" "Close this to continue"
@@ -308,20 +305,19 @@ ODIR="`dirname "$OUTPUT"`"
 
 PIDS=""
 if [[ ! -z "$WEBM" ]] ; then
-  echo creating webm
-  SUBS="$OSUBS"
-  get_subs
+  echo creating webm >&2
+  SUBS="`get_subs "$OSUBS"`"
   run ffmpeg $START $DURATION -i "$INPUT" -vf $CROP"$RATE$SUBS" \
       -map 0:v:0 -map 0:a:0 "$BASE".webm &
   PIDS="$PIDS $!"
 fi
 if [[ ! -z "$APNG" ]] ; then
-  echo adding frames to apng
+  echo adding frames to apng >&2
   run apngasm "$tdir"/ffout*.png -o "$BASE".png -d $DELAY -l 0 &
   PIDS="$PIDS $!"
 fi
 if [[ ! -z "$GIF" ]] ; then
-  echo adding frames to gif
+  echo adding frames to gif >&2
   if [[ ! -z "$APNG" ]] &&  which apng2gif > /dev/null 2>&1 ; then
     wait $!
     run apng2gif "$BASE".png "$BASE".gif &
@@ -333,5 +329,5 @@ fi
 
 wait $PIDS
 run mv "$tdir/out"/* "$ODIR"
-
-echo done
+sleep 10
+echo done >&2
