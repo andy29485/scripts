@@ -107,7 +107,7 @@ GIF=""
 APNG=""
 WEBM=""
 OPEN=""
-DEBUG="true"
+#DEBUG="true"
 
 if which xdg-open > /dev/null 2>&1 ; then
   OPEN="xdg-open"
@@ -329,5 +329,5 @@ fi
 
 wait $PIDS
 run mv "$tdir/out"/* "$ODIR"
-sleep 10
+
 echo done >&2
