@@ -1296,7 +1296,7 @@ function make(burn_subtitles, as_webm)
     return
   end
 
-  mp.osd_message("Creating APNG.")
+  mp.osd_message("Creating "..(as_webm and "WEBM" or "APNG"))
 
   -- shell escape
   function esc(s)
@@ -1376,6 +1376,6 @@ mp.add_key_binding("g", "set_start", set_start)
 mp.add_key_binding("G", "set_end", set_end)
 mp.add_key_binding("Ctrl+g", "make_with_subtitles", make_with_subtitles)
 mp.add_key_binding("Ctrl+G", "make_plain", make_plain)
-mp.add_key_binding("Ctrl+w", "make_with_subtitles", make_with_subtitles_webm)
-mp.add_key_binding("Ctrl+W", "make_plain", make_plain_webm)
+mp.add_key_binding("Ctrl+w", "make_with_subtitles_w", make_with_subtitles_webm)
+mp.add_key_binding("Ctrl+W", "make_plain_w", make_plain_webm)
 mp.add_key_binding("C", "crop_toggle", crop_toggle)

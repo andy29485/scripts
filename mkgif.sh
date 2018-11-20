@@ -164,7 +164,7 @@ while getopts "$optspec" optchar; do
     w) WIDTH="$OPTARG"                    ;;
     i) OSUBS="$OPTARG"                    ;;
     s) [[ -z "$OSUBS" ]] && OSUBS="INPUT" ;;
-    c) CROP="$OPTARG"                     ;;
+    c) CROP="crop=$OPTARG,"               ;;
     m) MANUAL="cli"                       ;;
     M) MANUAL="gui"                       ;;
     G) GIF="true"                         ;;
