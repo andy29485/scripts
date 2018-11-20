@@ -75,7 +75,7 @@ run() {
 get_subs() {
   if [ "$SUBS" = "INPUT" ] ; then
     echo extracting subs
-    run ffmpeg $START $DURATION -i "$INPUT" -map 0:s:0 "$tdir/subs.ass"
+    run ffmpeg $START $DURATION -i "$INPUT" -map 0:s:0 "$tdir/subs.ass" -y
     SUBS=",subtitles=subs.ass:fontsdir='$tdir/attach'"
     if [[ $INPUT == *.mkv ]] && [[ ! -d "$tdir/attach" ]] ; then
       echo extracting fonts
@@ -87,7 +87,7 @@ get_subs() {
       cd ../
     fi
   elif [[ ! -z "$SUBS" ]] ; then
-    run ffmpeg $START $DURATION -i "$SUBS" "$tdir/subs.ass"
+    run ffmpeg $START $DURATION -i "$SUBS" "$tdir/subs.ass" -y
     cp "$SUBS" "$tdir/subs.ass"
     SUBS=",subtitles=$tdir/subs.ass"
   fi
@@ -108,9 +108,8 @@ CROP=""
 GIF=""
 APNG=""
 WEBM=""
-DEBUG=""
 OPEN=""
-DEBUG=""
+#DEBUG="true"
 
 if which xdg-open > /dev/null 2>&1 ; then
   OPEN="xdg-open"
@@ -307,25 +306,32 @@ mkdir "$tdir/out"
 BASE="$tdir/out/`basename "$OUTPUT"`"
 ODIR="`dirname "$OUTPUT"`"
 
-if [[ ! -z "$APNG" ]] ; then
-  echo adding frames to apng
-  run apngasm "$tdir"/ffout*.png -o "$BASE".png -d $DELAY -l 0
-fi
-if [[ ! -z "$GIF" ]] ; then
-  echo adding frames to gif
-  if [[ ! -z "$APNG" ]] &&  which apng2gif > /dev/null 2>&1 ; then
-    run apng2gif "$BASE".png "$BASE".gif
-  else
-    run $convert -delay $DELAY/0 -loop 0 "$tdir"/ffout*.png "$BASE".gif
-  fi
-fi
+PIDS=""
 if [[ ! -z "$WEBM" ]] ; then
   echo creating webm
   SUBS="$OSUBS"
   get_subs
   run ffmpeg $START $DURATION -i "$INPUT" -vf $CROP"$RATE$SUBS" \
-      -map 0:v:0 -map 0:a:0 "$BASE".webm
+      -map 0:v:0 -map 0:a:0 "$BASE".webm &
+  PIDS="$PIDS $!"
 fi
+if [[ ! -z "$APNG" ]] ; then
+  echo adding frames to apng
+  run apngasm "$tdir"/ffout*.png -o "$BASE".png -d $DELAY -l 0 &
+  PIDS="$PIDS $!"
+fi
+if [[ ! -z "$GIF" ]] ; then
+  echo adding frames to gif
+  if [[ ! -z "$APNG" ]] &&  which apng2gif > /dev/null 2>&1 ; then
+    wait $!
+    run apng2gif "$BASE".png "$BASE".gif &
+  else
+    run $convert -delay $DELAY/0 -loop 0 "$tdir"/ffout*.png "$BASE".gif &
+  fi
+  PIDS="$PIDS $!"
+fi
+
+wait $PIDS
 run mv "$tdir/out"/* "$ODIR"
 
 echo done

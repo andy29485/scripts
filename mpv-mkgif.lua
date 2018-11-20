@@ -1272,19 +1272,19 @@ function on_tick_listener()
 end
 
 function make_with_subtitles()
-  make(true, true)
-end
-
-function make_plain()
-  make(false, true)
-end
-
-function make_with_subtitles_webm()
   make(true, false)
 end
 
-function make_plain_webm()
+function make_plain()
   make(false, false)
+end
+
+function make_with_subtitles_webm()
+  make(true, true)
+end
+
+function make_plain_webm()
+  make(false, true)
 end
 
 function make(burn_subtitles, as_webm)
@@ -1324,7 +1324,7 @@ function make(burn_subtitles, as_webm)
   end
 
   args = string.format(
-    'mkgif.sh -M%s%s%s \"%s\" \"%s\" %s %s',
+    'mkgif.sh -M%s%s%s \"%s\" \"%s\" %s %s &',
     (burn_subtitles and 's' or ''),
     (as_webm and 'W' or 'GP'),
     crop_str,
