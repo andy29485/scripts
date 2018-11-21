@@ -1272,19 +1272,19 @@ function on_tick_listener()
 end
 
 function make_with_subtitles()
-  make(true, true)
-end
-
-function make_plain()
-  make(false, true)
-end
-
-function make_with_subtitles_webm()
   make(true, false)
 end
 
-function make_plain_webm()
+function make_plain()
   make(false, false)
+end
+
+function make_with_subtitles_webm()
+  make(true, true)
+end
+
+function make_plain_webm()
+  make(false, true)
 end
 
 function make(burn_subtitles, as_webm)
@@ -1379,6 +1379,6 @@ mp.add_key_binding("g", "set_start", set_start)
 mp.add_key_binding("G", "set_end", set_end)
 mp.add_key_binding("Ctrl+g", "make_with_subtitles", make_with_subtitles)
 mp.add_key_binding("Ctrl+G", "make_plain", make_plain)
-mp.add_key_binding("Ctrl+w", "make_with_subtitles", make_with_subtitles_webm)
-mp.add_key_binding("Ctrl+W", "make_plain", make_plain_webm)
+mp.add_key_binding("Ctrl+w", "make_with_subtitles_w", make_with_subtitles_webm)
+mp.add_key_binding("Ctrl+W", "make_plain_w", make_plain_webm)
 mp.add_key_binding("C", "crop_toggle", crop_toggle)
