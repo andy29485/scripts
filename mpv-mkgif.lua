@@ -1324,10 +1324,13 @@ function make(burn_subtitles, as_webm)
   end
 
   args = string.format(
-    'mkgif.sh -M%s%s%s \"%s\" \"%s\" %s %s',
+    'mkgif.sh -M%s%s%s -V %s -A %s -U %s \"%s\" \"%s\" %s %s',
     (burn_subtitles and 's' or ''),
     (as_webm and 'W' or 'GP'),
     crop_str,
+    mp.get_property("vid"),
+    mp.get_property("aid"),
+    mp.get_property("sid"),
     esc(pathname), esc(imgname),
     start_time, duration
   )

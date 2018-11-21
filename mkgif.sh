@@ -15,6 +15,7 @@ help() {
   printf " [[-r|--rate] RATE] [-w WIDTH] [-c CROP] [-s|--enable-subtitles]"
   printf " [-i|--subtitle-file <sub file>]]"
   printf " [-m|--manual] [-M|--manual-gui]"
+  printf " [-V <video track id> [-A <audio track id> [-S <sub track id>]"
   printf " [-G|--gif] [-P|--apng]  [-W|--webm]"
   printf " <input.(mkv|mp4)> <output> [start time] [duration]"
   echo
@@ -75,7 +76,7 @@ run() {
 get_subs() {
   if [ "$SUBS" = "INPUT" ] ; then
     echo extracting subs
-    run ffmpeg $START $DURATION -i "$INPUT" -map 0:s:0 "$tdir/subs.ass"
+    run ffmpeg $START $DURATION -i "$INPUT" $SMAP "$tdir/subs.ass"
     SUBS=",subtitles=subs.ass:fontsdir='$tdir/attach'"
     if [[ $INPUT == *.mkv ]] && [[ ! -d "$tdir/attach" ]] ; then
       echo extracting fonts
@@ -111,6 +112,9 @@ WEBM=""
 DEBUG=""
 OPEN=""
 DEBUG=""
+VMAP="-map 0:v:0"
+AMAP="-map 0:a:0"
+SMAP="-map 0:s:0"
 
 if which xdg-open > /dev/null 2>&1 ; then
   OPEN="xdg-open"
@@ -149,12 +153,18 @@ do
     --apng)               set -- "$@" -P             ;;
     --webm)               set -- "$@" -W             ;;
     --enable-subtitles)   set -- "$@" -s             ;;
-    --rate=*)             set -- "$@" -r "${arg#*=}" ;;
     --rate)               set -- "$@" -r             ;;
-    --width=*)            set -- "$@" -w "${arg#*=}" ;;
+    --rate=*)             set -- "$@" -r "${arg#*=}" ;;
     --width)              set -- "$@" -w             ;;
-    --subtitle-file=*)    set -- "$@" -i "${arg#*=}" ;;
+    --width=*)            set -- "$@" -w "${arg#*=}" ;;
     --subtitle-file)      set -- "$@" -i             ;;
+    --subtitle-file=*)    set -- "$@" -i "${arg#*=}" ;;
+    --subtitle-track)     set -- "$@" -S             ;;
+    --subtitle-track=*)   set -- "$@" -S "${arg#*=}" ;;
+    --audio-track)        set -- "$@" -A             ;;
+    --audio-track=*)      set -- "$@" -A "${arg#*=}" ;;
+    --video-track)        set -- "$@" -V             ;;
+    --video-track=*)      set -- "$@" -V "${arg#*=}" ;;
     # pass through anything else
     *) set -- "$@" "$arg" ;;
   esac
@@ -173,6 +183,9 @@ while getopts "$optspec" optchar; do
     G) GIF="true"                        ;;
     P) APNG="true"                       ;;
     W) WEBM="true"                       ;;
+    V) VMAP="-map 0:v:$OPTARG"           ;;
+    A) AMAP="-map 0:a:$OPTARG"           ;;
+    S) SMAP="-map 0:s:$OPTARG"           ;;
   esac
 done
 shift $((OPTIND-1))
@@ -269,7 +282,7 @@ get_subs
 
 echo extracting frames
 run ffmpeg $START $DURATION -i "$INPUT" \
-           -vf $CROP$WIDTH"$RATE$SUBS" "$tdir"/ffout%05d.png
+           -vf $CROP$WIDTH"$RATE$SUBS" $VMAP "$tdir"/ffout%05d.png
 
 if [ -n "$MANUAL" ] ; then
   echo please delete any unneeded images in \"$tdir\"
@@ -324,7 +337,7 @@ if [[ ! -z "$WEBM" ]] ; then
   SUBS="$OSUBS"
   get_subs
   run ffmpeg $START $DURATION -i "$INPUT" -vf $CROP"$RATE$SUBS" \
-      -map 0:v:0 -map 0:a:0 "$BASE".webm
+      $VMAP $AMAP "$BASE".webm
 fi
 run mv "$tdir/out"/* "$ODIR"
 
