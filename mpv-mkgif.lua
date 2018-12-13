@@ -1296,7 +1296,7 @@ function make(burn_subtitles, as_webm)
     return
   end
 
-  mp.osd_message("Creating APNG.")
+  mp.osd_message("Creating "..(as_webm and "WEBM" or "APNG")..".")
 
   -- shell escape
   function esc(s)
@@ -1328,26 +1328,26 @@ function make(burn_subtitles, as_webm)
     (burn_subtitles and 's' or ''),
     (as_webm and 'W' or 'GP'),
     crop_str,
-    mp.get_property("vid"),
-    mp.get_property("aid"),
-    mp.get_property("sid"),
+    mp.get_property("vid")-1,
+    mp.get_property("aid")-1,
+    mp.get_property("sid")-1,
     esc(pathname), esc(imgname),
     start_time, duration
   )
   os.execute(args)
 
-  msg.info("APNG created.")
-  mp.osd_message("APNG created.")
+  msg.info((as_webm and "WEBM" or "APNG").." created.")
+  mp.osd_message((as_webm and "WEBM" or "APNG").." created.")
 end
 
 function set_start()
   start_time = mp.get_property_number("time-pos", -1)
-  mp.osd_message("APNG Start: " .. start_time)
+  mp.osd_message("Start time: " .. start_time)
 end
 
 function set_end()
   end_time = mp.get_property_number("time-pos", -1)
-  mp.osd_message("APNG End: " .. end_time)
+  mp.osd_message("End time: " .. end_time)
 end
 
 function file_exists(name)
