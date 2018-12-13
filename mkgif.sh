@@ -131,7 +131,7 @@ else
   ie "image magic"
 fi
 
-optspec=":hvr:w:c:si:mMGPW"
+optspec=":hvr:w:c:si:mMGPWA:V:S:"
 reset=true
 for arg in "$@"
 do

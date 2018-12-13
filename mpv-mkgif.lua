@@ -1324,7 +1324,7 @@ function make(burn_subtitles, as_webm)
   end
 
   args = string.format(
-    'mkgif.sh -M%s%s%s -V %s -A %s -U %s \"%s\" \"%s\" %s %s',
+    'mkgif.sh -M%s%s%s -V %s -A %s -S %s \"%s\" \"%s\" %s %s',
     (burn_subtitles and 's' or ''),
     (as_webm and 'W' or 'GP'),
     crop_str,
