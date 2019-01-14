@@ -1310,7 +1310,7 @@ function make(burn_subtitles, as_webm)
   local filename = mp.get_property("filename/no-ext")
   local file_path = working_path .. filename
 
-    -- find a filename that works
+  -- find a filename that works
   for i=0,99999 do
     local fn = string.format('%s_%03d', file_path, i)
     if not file_exists(fn) then
@@ -1323,17 +1323,28 @@ function make(burn_subtitles, as_webm)
     return
   end
 
+  mp.osd_message("Test \""..mp.get_property("sid").."\"")
+
+  vid = mp.get_property("vid")
+  aid = mp.get_property("aid")
+  sid = mp.get_property("sid")
+
+  if vid == 'no' then vid=0 end
+  if aid == 'no' then aid=0 end
+  if sid == 'no' then sid=0 end
+
   args = string.format(
     'mkgif.sh -M%s%s%s -V %s -A %s -S %s \"%s\" \"%s\" %s %s',
     (burn_subtitles and 's' or ''),
     (as_webm and 'W' or 'GP'),
     crop_str,
-    mp.get_property("vid")-1,
-    mp.get_property("aid")-1,
-    mp.get_property("sid")-1,
+    vid-1,
+    aid-1,
+    sid-1,
     esc(pathname), esc(imgname),
     start_time, duration
   )
+
   os.execute(args)
 
   msg.info((as_webm and "WEBM" or "APNG").." created.")
