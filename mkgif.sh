@@ -77,7 +77,7 @@ get_subs() {
   if [[ -z "$SMAP" ]] ; then echo ; return ; fi
   if [ "$1" = "INPUT" ] ; then
     echo extracting subs >&2
-    run ffmpeg $START $DURATION -i "$INPUT" $SMAP "$tdir/subs.ass" -y
+    run ffmpeg $START $DURATION -i "$INPUT" -map 0:s:0 "$tdir/subs.ass" -y
     echo ",subtitles=subs.ass:fontsdir=attach"
     if [[ $INPUT == *.mkv ]] && [[ ! -d "$tdir/attach" ]] ; then
       echo extracting fonts >&2
@@ -132,7 +132,7 @@ else
   ie "image magic"
 fi
 
-optspec=":hvr:w:c:si:mMGPWA:V:S:"
+optspec=":hvr:w:c:si:mMGPW"
 reset=true
 for arg in "$@"
 do
