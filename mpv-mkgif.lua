@@ -1323,8 +1323,6 @@ function make(burn_subtitles, as_webm)
     return
   end
 
-  mp.osd_message("Test \""..mp.get_property("sid").."\"")
-
   vid = mp.get_property("vid")
   aid = mp.get_property("aid")
   sid = mp.get_property("sid")
