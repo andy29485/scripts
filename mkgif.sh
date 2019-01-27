@@ -308,7 +308,8 @@ if [ -n "$MANUAL" ] ; then
 
   START=`echo ${START} | grep -o '[0-9\.]*'`
   TMP=$([[ $START == *.* ]] && echo ${START#*.}000 || echo 000)
-  START=${START%.*}${TMP:0:3}
+  START=${START%.*}
+  START=${START##*0}${TMP:0:3}
 
   START="-ss `echo 000$((START+s_off)) | sed 's/...$/.&/' | sed 's/^0*//'`"
   DURATION="-t `echo 000$e_off | sed 's/...$/.&/' | sed 's/^0*//'`"
@@ -341,7 +342,7 @@ if [[ ! -z "$GIF" ]] ; then
     wait $!
     run apng2gif "$BASE".png "$BASE".gif &
   else
-    run $convert -delay $((DELAY/10))/0 -loop 0 "$tdir"/ffout*.png "$BASE".gif &
+    run $convert -delay $((DELAY/10)) -loop 0 "$tdir"/ffout*.png "$BASE".gif &
   fi
   PIDS="$PIDS $!"
 fi
