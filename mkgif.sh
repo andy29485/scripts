@@ -74,6 +74,7 @@ run() {
 }
 
 get_subs() {
+  if [[ -z "$SMAP" ]] ; then echo ; return ; fi
   if [ "$1" = "INPUT" ] ; then
     echo extracting subs >&2
     run ffmpeg $START $DURATION -i "$INPUT" -map 0:s:0 "$tdir/subs.ass" -y
@@ -131,7 +132,7 @@ else
   ie "image magic"
 fi
 
-optspec=":hvr:w:c:si:mMGPW"
+optspec=":hvr:w:c:si:mMGPWV:A:S:"
 reset=true
 for arg in "$@"
 do
@@ -168,21 +169,21 @@ do
 done
 while getopts "$optspec" optchar; do
   case "${optchar}" in
-    h) help ; exit 2                      ;;
-    v) DEBUG="true"                       ;;
-    r) RATE="$OPTARG"                     ;;
-    w) WIDTH="$OPTARG"                    ;;
-    i) OSUBS="$OPTARG"                    ;;
-    s) [[ -z "$OSUBS" ]] && OSUBS="INPUT" ;;
-    c) CROP="crop=$OPTARG,"               ;;
-    m) MANUAL="cli"                       ;;
-    M) MANUAL="gui"                       ;;
-    G) GIF="true"                         ;;
-    P) APNG="true"                        ;;
-    W) WEBM="true"                        ;;
-    V) VMAP="-map 0:v:$OPTARG"            ;;
-    A) AMAP="-map 0:a:$OPTARG"            ;;
-    S) SMAP="-map 0:s:$OPTARG"            ;;
+    h) help ; exit 2                                             ;;
+    v) DEBUG="true"                                              ;;
+    r) RATE="$OPTARG"                                            ;;
+    w) WIDTH="$OPTARG"                                           ;;
+    i) OSUBS="$OPTARG"                                           ;;
+    s) [[ -z "$OSUBS" ]] && OSUBS="INPUT"                        ;;
+    c) CROP="crop=$OPTARG,"                                      ;;
+    m) MANUAL="cli"                                              ;;
+    M) MANUAL="gui"                                              ;;
+    G) GIF="true"                                                ;;
+    P) APNG="true"                                               ;;
+    W) WEBM="true"                                               ;;
+    V) [[ $OPTARG -ge 0 ]] && VMAP="-map 0:v:$OPTARG" || VMAP="" ;;
+    A) [[ $OPTARG -ge 0 ]] && AMAP="-map 0:a:$OPTARG" || AMAP="" ;;
+    S) [[ $OPTARG -ge 0 ]] && SMAP="-map 0:s:$OPTARG" || SMAP="" ;;
   esac
 done
 shift $((OPTIND-1))
@@ -218,6 +219,11 @@ mkdir "$tdir"
 INPUT="`echo "$INPUT" | sed -E 's/([A-Z]):/\/\1/' | xargs -0 realpath`"
 OUTPUT="`echo "$OUTPUT" | sed -E 's/([A-Z]):/\/\1/' | xargs -0 realpath`"
 back="`pwd`"
+
+#if [[ "`uname`" == MINGW* ]] ; then
+#  INPUT="`echo $INPUT | sed -re 's/^\/([A-Za-z])\//\1:\//'`"
+#  OUTPUT="`echo $OUTPUT | sed -re 's/^\/([A-Za-z])\//\1:\//'`"
+#fi
 
 finish() {
   rm -rf "$tdir"
@@ -335,7 +341,7 @@ if [[ ! -z "$GIF" ]] ; then
     wait $!
     run apng2gif "$BASE".png "$BASE".gif &
   else
-    run $convert -delay $DELAY/0 -loop 0 "$tdir"/ffout*.png "$BASE".gif &
+    run $convert -delay $((DELAY/10))/0 -loop 0 "$tdir"/ffout*.png "$BASE".gif &
   fi
   PIDS="$PIDS $!"
 fi
