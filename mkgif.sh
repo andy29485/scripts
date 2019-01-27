@@ -42,8 +42,8 @@ help() {
   echo
   echo "Addition:"
   echo "  (note: if left blank, whole input file will be converted)"
-  echo "  Start:       start time of segment, format \"HH:MM:SS.mmm\""
-  echo "  Duration:    duration of segment,  format \"S.mmm\""
+  echo "  Start:       start time of segment, format \"[[HH:]MM:]SS[.mmm]\""
+  echo "  Duration:    duration of segment,  format \"S[.mmm]\""
 }
 
 dialog-box() {

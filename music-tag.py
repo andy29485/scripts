@@ -594,13 +594,13 @@ def user_modify_album(album):
     val = album.get(key, '')
     if type(album[key]) == list:
       val = '; '.join(val)
-    new = read(f"{keys[index]} [{val}]: ", val)
+    new = read(f"{keys[index]} [{val}]: ", val).strip()
     if new == '^':
       index -= 1
       continue
     if new:
       if type(album[key]) == list:
-        new = re.split(r'\s*;\s*', new.strip())
+        new = re.split(r'\s*;\s*', new)
       album[key] = new
     index += 1
   return album
